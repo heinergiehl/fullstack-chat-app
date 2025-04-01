@@ -1,4 +1,4 @@
-export const useChatPresence = () => {
+export const useChatPresence = (chatId: number) => {
   const socket = useNuxtApp().$socket
   const onlineUsersInChat = ref<MinimalUser[]>([])
   onMounted(() => {

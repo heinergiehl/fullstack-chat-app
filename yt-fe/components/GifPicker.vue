@@ -34,7 +34,7 @@
       class="w-full mb-4"
     />
     <div
-      class="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto h-[340px]"
+      class="grid-template grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto h-[340px]"
     >
       <div v-for="gif in gifs" :key="gif.id" class="cursor-pointer">
         <img

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
   const presenceStore = usePresenceStore()
   const { onlineUsers: users } = storeToRefs(presenceStore)
+  const routeName = useRoute().name
 
-  const userProfileQuery = useUserProfile()
+  const userProfileQuery = useUserProfile(routeName)
   const { friends } = useFriendList()
 
   const nonFriendOnlineUsers = computed<User[]>(() => {

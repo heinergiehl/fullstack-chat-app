@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   const colorMode = useColorMode()
-  const userProfileQuery = useUserProfile()
+  const routeName = useRoute().name
+  const userProfileQuery = useUserProfile(routeName)
 
   const logoutMutation = useLogoutUser()
 
@@ -10,7 +11,8 @@
     },
 
     set() {
-      colorMode.value = colorMode.value === "dark" ? "light" : "dark"
+      colorMode.preference = colorMode.value === "dark" ? "light" : "dark"
+      console.log("setDarkMode", colorMode.value)
     },
   })
   const presenceStore = usePresenceStore()
@@ -27,6 +29,9 @@
     ]
 
     const authUser = userProfileQuery.data.value?.user
+
+    const router = useRouter()
+
     const authLinks = authUser
       ? [
           {
@@ -39,8 +44,12 @@
           {
             label: "Logout",
             slot: "logout",
+
             onSelect: async () => {
+              router.push("/login")
+
               await logoutMutation.mutateAsync()
+
               presenceStore.cleanUpPresence()
               presenceStore.$reset()
             },

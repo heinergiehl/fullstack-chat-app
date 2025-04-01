@@ -25,12 +25,13 @@
       },
     })
   }
-  const userProfileQuery = useUserProfile()
+  const routeName = useRoute().name
+  const userProfileQuery = useUserProfile(routeName)
   const userProfile = userProfileQuery.data?.value?.user
 
   const getButtonClasses = computed(() => (chat: Chat) => {
     if (chat.id === activeChatId.value) {
-      return ["bg-green-950"]
+      return ["bg-green-200", ["dark:bg-green-950"]]
     }
     const userId = userProfile?.id
     const notififications = Array.isArray(chat.notifications)

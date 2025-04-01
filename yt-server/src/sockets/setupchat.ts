@@ -43,6 +43,10 @@ export function setupChat(io: Server): void {
       broadcastChatPresence(io, chatId)
     })
     socket.on("leaveChat", async ({ chatId }: { chatId: number }) => {
+      if (!chatId) {
+        console.log("No chatId provided in leaveChat event")
+        return
+      }
       const user = socket.data.user
 
       const fullUser = await prisma.user.findUnique({
@@ -62,11 +66,10 @@ export function setupChat(io: Server): void {
       })
 
       console.log(`User ${user?.id} left chat ${chatId}`)
-
-      socket.leave(chatId.toString())
       // remove user from memory
       updateUserInMemory(fullUser.id, { chatId: undefined })
       broadcastChatPresence(io, chatId)
+      socket.leave(chatId.toString())
     })
 
     socket.on(

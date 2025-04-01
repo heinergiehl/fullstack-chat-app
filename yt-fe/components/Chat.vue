@@ -4,11 +4,10 @@
 
   const route = useRoute()
   const chatId = ref(Number(route.params.id))
-  const userProfileQuery = useUserProfile()
+  const routeName = useRoute().name
+  const userProfileQuery = useUserProfile(routeName)
   const chatQuery = useGetChatWithMessages(chatId.value)
-  const { typingIndicators, emitTyping } = useRealtimeTypingIndicator(
-    chatId.value
-  )
+  const { typingIndicators, emitTyping } = useSetupChatRoom(chatId.value)
 
   const otherTypingIndicators = computed(() =>
     typingIndicators.value.filter(
@@ -158,7 +157,7 @@
   const chat = chatQuery.data
   const backendBaseUrl = useRuntimeConfig().public.BACKEND_BASE_URL
 
-  const { onlineUsersInChat } = useChatPresence()
+  const { onlineUsersInChat } = useChatPresence(chatId.value)
 
   const isOnline = (userId: number | undefined) => {
     if (!onlineUsersInChat.value) return false
@@ -177,41 +176,34 @@
 
           <USeparator />
           <div
-            class="flex flex-wrap items-center justify-center text-gray-500 text-sm"
+            class="flex flex-wrap items-center justify-center text-gray-500 text-sm my-2"
           >
             <span v-if="chat?.participants?.length" class="mr-1 md:block hidden"
               >with the following participants:
             </span>
 
-            <span
-              class="text-xs dark:text-gray-300 text-gray-700"
+            <UAvatarGroup
               v-for="participant in chat?.participants?.filter(
                 (p) => p.user?.id !== userProfileQuery.data.value?.user?.id
               )"
               :key="participant.id"
             >
-              <UAvatarGroup>
-                <UChip
-                  :color="
-                    isOnline(participant.user?.id) ? 'success' : 'neutral'
-                  "
-                >
-                  <UTooltip
-                    v-if="participant.user"
-                    :text="participant.user.name"
-                  >
-                    <UAvatar
-                      :name="participant.user?.name"
-                      :src="getAvatarUrl(participant.user)"
-                    />
-                  </UTooltip>
-                </UChip>
-              </UAvatarGroup>
-            </span>
+              <UChip
+                inset
+                :color="isOnline(participant.user?.id) ? 'success' : 'neutral'"
+              >
+                <UTooltip v-if="participant.user" :text="participant.user.name">
+                  <UAvatar
+                    :name="participant.user?.name"
+                    :src="getAvatarUrl(participant.user)"
+                  />
+                </UTooltip>
+              </UChip>
+            </UAvatarGroup>
           </div>
+          <USeparator />
         </div>
 
-        <USeparator />
         <!-- chat container -->
         <div
           class="h-[58vh] md:h-[64vh] p-4 overflow-y-auto space-y-4 flex flex-col"
@@ -249,7 +241,7 @@
                   v-if="attachment.type === 'GIF'"
                   :src="attachment.mediaUrl"
                   @load="scrollToBottom"
-                  class="max-w-[200px] h-auto rounded-lg"
+                  class="w-[100px] md:w-[150px] h-auto rounded-lg"
                 />
 
                 <img
@@ -258,7 +250,7 @@
                 ${backendBaseUrl}/storage/chatMedia/${attachment.mediaUrl}
                   `"
                   @load="scrollToBottom"
-                  class="max-w-[200px] h-auto rounded-lg"
+                  class="w-[100px] md:w-[150px] h-auto rounded-lg"
                 />
               </div>
             </div>
@@ -311,7 +303,7 @@
               />
               <img
                 v-else-if="attachment.type === 'GIF'"
-                class="w-12 h-12 object-cover rounded-md"
+                class="w-12 h-12 rounded-md"
                 :src="attachment.mediaUrl"
                 alt=""
                 @load="scrollToBottom"

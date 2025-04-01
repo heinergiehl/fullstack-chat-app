@@ -9,14 +9,16 @@ export type MinimalUser = {
   profile_image: string
   chatId?: number
 }
-export const useRealtimeTypingIndicator = (chatId: number) => {
+export const useSetupChatRoom = (chatId: number) => {
   const typingIndicators = ref<TypingIndicator[]>([])
   const { $socket: socket } = useNuxtApp()
 
   const joinChat = () => {
     socket.emit("joinChat", { chatId })
   }
+  const route = useRoute()
   const leaveChat = () => {
+    console.log("Leaving chat: ", chatId)
     socket.emit("leaveChat", { chatId })
   }
   const currentOnlineUsersInChat = ref<MinimalUser[]>([])
@@ -94,9 +96,10 @@ export const useRealtimeTypingIndicator = (chatId: number) => {
     socket.on("typingIndicator", onTypingIndicator)
     socket.on("userJoined", onUserJoined)
   })
-  onBeforeUnmount(() => {
+  onBeforeUnmount(async () => {
+    console.log("Unmounting typing indicator")
     leaveChat()
-
+    await nextTick()
     socket.off("typingIndicator", onTypingIndicator)
     socket.off("userJoined", onUserJoined)
     socket.off("userLeft", onUserLeft)

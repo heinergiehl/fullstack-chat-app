@@ -2,7 +2,10 @@
   const presenceStore = usePresenceStore()
   const { friends, isLoading } = useFriendList()
   const { onlineUsers: users } = storeToRefs(presenceStore)
-  const dataUserAuth = useUserProfile()
+  const route = useRoute()
+  const routeName = route.name
+
+  const dataUserAuth = useUserProfile(routeName)
 
   function isOnline(friendId: number) {
     return !!users.value.find((u) => u.id === friendId)

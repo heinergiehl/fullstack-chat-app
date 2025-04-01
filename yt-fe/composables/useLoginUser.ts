@@ -1,14 +1,14 @@
+import type { RouteRecordNameGeneric } from "vue-router"
+
 export interface LoginPayload {
   email: string
   password: string
 }
 
-export const useLoginUser = () => {
+export const useLoginUser = (route: RouteRecordNameGeneric) => {
   const { callApi } = useApi()
   const router = useRouter()
   const toast = useToast()
-
-  const { refetch } = useUserProfile()
 
   return useMutation({
     mutationFn: async (variables: LoginPayload) => {
@@ -28,7 +28,6 @@ export const useLoginUser = () => {
       })
     },
     onSuccess: async () => {
-      await refetch()
       router.push("/")
     },
   })

@@ -4,6 +4,7 @@ export const useLogoutUser = () => {
   const queryClient = useQueryClient()
   const toast = useToast()
   const { $socket: socket } = useNuxtApp()
+  const { params } = useRoute()
   return useMutation({
     mutationFn: async () => {
       await callApi<{ message: string }>("/logout", {
@@ -19,16 +20,13 @@ export const useLogoutUser = () => {
         icon: "i-heroicons-information-circle",
       })
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.setQueryData(["userProfile"], null)
       queryClient.setQueryData(["notifications"], null)
       queryClient.setQueryData(["friends"], null)
       queryClient.setQueryData(["friendRequests"], null)
       queryClient.setQueryData(["chats"], null)
-
-      socket.emit("leaveRoom", {})
-      socket.disconnect()
-      router.push("/login")
+      queryClient.clear()
     },
   })
 }
