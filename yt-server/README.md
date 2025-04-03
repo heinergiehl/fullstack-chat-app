@@ -1,7 +1,15 @@
-# Fullstack Real Time Chat App
+# yt-server
 
+To install dependencies:
 
-[![Demo Video](https://github.com/user-attachments/assets/909f97b7-c5e6-497e-bdab-eed3392379e1)](https://youtu.be/dtIGTKCY8PI)
+```bash
+bun install
+```
 
-Click on the image to see a quick demo about this project :)
+To run:
 
+```bash
+bun run index.ts
+```
+
+This project was created using `bun init` in bun v1.2.5. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
