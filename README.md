@@ -3,7 +3,7 @@
 
 [![Demo Video](https://github.com/user-attachments/assets/909f97b7-c5e6-497e-bdab-eed3392379e1)](https://youtu.be/dtIGTKCY8PI)
 
-This is a modern web solution designed with real-time features and a smooth, interactive user experience. It leverages the power of **Nuxt 3** and **Nuxt UI** on the frontend along with **Socket.io** for real-time communication, while the backend runs on **Express** integrated with **Socket.io** to efficiently handle live updates.
+Click on the image to see a quick demo about this project :)
 
 ---
 
