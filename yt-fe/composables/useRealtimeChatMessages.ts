@@ -12,6 +12,7 @@ export const useUseRealtimeChatMessages = () => {
       const chatId = newMessage.chatId
       // for video important!!!
       queryClient.invalidateQueries({ queryKey: ["notifications"] })
+      queryClient.invalidateQueries({ queryKey: ["chats"] })
       const cachedChat = queryClient.getQueryData<Chat>(["chat", chatId])
 
       if (!cachedChat?.messages) return

@@ -3,7 +3,8 @@ export interface Friend extends User {
 }
 export const useFriendList = () => {
   const { callApi } = useApi()
-  const userProfileQuery = useUserProfile()
+  const routeName = useRoute().name
+  const userProfileQuery = useUserProfile(routeName)
 
   const { data, isLoading, refetch, error } = useQuery({
     queryKey: ["friends"],
@@ -28,7 +29,8 @@ export const useFriendList = () => {
           if (friendRequest?.notifications) {
             const acceptedNotification = friendRequest.notifications.find(
               (n) =>
-                n.type === "FRIEND_REQUEST_ACCEPTED" && n.userId === friend?.id
+                n.type === "FRIEND_REQUEST_ACCEPTED" &&
+                n.userId === currentUserId
             )
             return {
               ...friend,

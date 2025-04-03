@@ -21,13 +21,38 @@
 
 <script lang="ts" setup>
   const presenceStore = usePresenceStore()
+
   useRealtimeFriendRequests()
   useUseRealtimeFriends()
   useUseRealtimeChats()
   useUseRealtimeChatMessages()
+  const socket = useNuxtApp().$socket
   onMounted(() => {
-    console.log("mountedRUNNING")
+    if (!socket.connected) {
+      socket.connect()
+    }
+    socket.emit("joinLobby")
     presenceStore.initializePresence()
+  })
+  const params = useRoute().params
+  onBeforeUnmount(() => {
+    console.log("unmountedRUNNING")
+    socket.emit("leaveLobby", () => {
+      socket.disconnect()
+    })
+    if (params.id) {
+      socket.emit(
+        "leaveChat",
+        {
+          chatId: params.id,
+        },
+        () => {
+          socket.disconnect()
+        }
+      )
+    }
+
+    presenceStore.cleanUpPresence()
   })
 </script>
 

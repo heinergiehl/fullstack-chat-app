@@ -43,13 +43,47 @@ export function setupPresence(io: Server): void {
     } else {
       console.log("Socket connected without authenticated user data")
     }
-    socket.on("leaveRoom", () => {
-      console.log("Socket leaving room: ", socket.id)
-      handleDisconnect(socket, io)
-    })
+    socket.on(
+      "leaveLobby",
+      async (
+        {},
+        callback?: (ack: { success: boolean; message?: string }) => void
+      ) => {
+        console.log("Socket leaving room: ", socket.id)
+        handleDisconnect(socket, io)
+        callback?.({ success: true, message: "Left room successfully" })
+      }
+    )
     socket.on("disconnect", () => {
       console.log("Socket disconnected: ", socket.id)
       handleDisconnect(socket, io)
+    })
+
+    socket.on("joinLobby", async (roomId: string) => {
+      console.log("Socket joining room: ", roomId)
+      socket.join(roomId)
+      const user = socket.data.user
+      console.log(`User ${user?.id} joined room ${roomId}`)
+      const fullUser = await prisma.user.findUnique({
+        where: { id: user?.id },
+      })
+      if (!fullUser) {
+        return
+      }
+      const userData: MinimalUser = {
+        id: fullUser.id,
+        name: fullUser.name,
+        profile_image: fullUser.profile_image,
+      }
+      userDataMap.set(user.id, userData)
+      const existingSockets = userToSockets.get(user.id) ?? new Set<string>()
+      existingSockets.add(socket.id)
+      userToSockets.set(user.id, existingSockets)
+      userDataMap.set(user.id, userData)
+      //console log all sockets for the user
+      console.log("User sockets: ", userToSockets.get(user.id))
+      broadcastPresence(io)
+      broadcastChatPresence(io, parseInt(roomId))
     })
   })
 }
@@ -69,10 +103,14 @@ export function broadcastChatPresence(io: Server, chatId: number): void {
     `Broadcasting chat presence for chat ${chatId}`,
     onlineUsersInChat
   )
+  if (!chatId) {
+    console.log("No chatId provided in broadcastChatPresence")
+    return
+  }
   io.to(chatId.toString()).emit("chatPresenceUpdate", onlineUsersInChat)
 }
 
-function handleDisconnect(socket: Socket, io: Server) {
+export function handleDisconnect(socket: Socket, io: Server) {
   console.log("Socket disconnected: ", socket.id)
   let userId: number | undefined
 

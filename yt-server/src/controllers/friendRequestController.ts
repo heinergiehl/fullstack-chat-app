@@ -153,6 +153,9 @@ export async function acceptFriendRequest(
   emitToUser(io, userId, "newFriendAdded", {
     friendRequest: updatedFriendRequest,
   })
+  emitToUser(io, friendRequest.senderId, "newFriendAdded", {
+    friendRequest: updatedFriendRequest,
+  })
   res.status(200).json({ message: "Friend request accepted" })
 }
 

@@ -5,6 +5,7 @@ export const useUseRealtimeFriends = () => {
   onMounted(() => {
     socket.on("newFriendAdded", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: ["friends"] })
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
     })
   })
 

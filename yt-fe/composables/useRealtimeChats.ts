@@ -28,6 +28,16 @@ export const useUseRealtimeChats = () => {
         return [...oldData, chatWithNewNotifcations]
       })
     })
+    socket.on("chatDeleted", (payload: { chatId: number }) => {
+      const { chatId } = payload
+      console.log("Chat deleted: ", chatId)
+      queryClient.setQueryData<Chat[]>(["chats"], (oldData = []) => {
+        return oldData.filter((chat) => chat.id !== chatId)
+      })
+      if (chatId === Number(useRoute().params.id)) {
+        navigateTo("/")
+      }
+    })
   })
 
   onBeforeUnmount(() => {

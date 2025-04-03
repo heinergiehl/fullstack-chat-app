@@ -7,7 +7,10 @@
   const routeName = useRoute().name
   const userProfileQuery = useUserProfile(routeName)
   const chatQuery = useGetChatWithMessages(chatId.value)
-  const { typingIndicators, emitTyping } = useSetupChatRoom(chatId.value)
+  const { typingIndicators, emitTyping } = useSetupChatRoom(
+    chatId.value,
+    routeName
+  )
 
   const otherTypingIndicators = computed(() =>
     typingIndicators.value.filter(
@@ -157,11 +160,13 @@
   const chat = chatQuery.data
   const backendBaseUrl = useRuntimeConfig().public.BACKEND_BASE_URL
 
-  const { onlineUsersInChat } = useChatPresence(chatId.value)
-
+  const presenceStore = usePresenceStore()
+  const onlineUsersInChat = computed(() => presenceStore.chatUsers)
   const isOnline = (userId: number | undefined) => {
-    if (!onlineUsersInChat.value) return false
-    return onlineUsersInChat.value.some((user) => user.id === userId)
+    if (!onlineUsersInChat) return false
+    return onlineUsersInChat
+      .value(chatId.value)
+      .some((user) => user.id === userId)
   }
 </script>
 
@@ -206,7 +211,12 @@
 
         <!-- chat container -->
         <div
-          class="h-[58vh] md:h-[64vh] p-4 overflow-y-auto space-y-4 flex flex-col"
+          class="p-4 overflow-y-auto space-y-4 flex flex-col"
+          :class="
+            attachments.length === 0
+              ? 'h-[67vh] md:h-[71vh]'
+              : 'h-[56vh] md:h-[61vh]'
+          "
           ref="chatContainer"
         >
           <div
@@ -236,7 +246,11 @@
             <p class="break-words">{{ message.content }}</p>
 
             <div v-if="message.media && message.media.length" class="mt-2">
-              <div v-for="attachment in message.media" :key="attachment.id">
+              <div
+                v-for="attachment in message.media"
+                :key="attachment.id"
+                class="my-2"
+              >
                 <img
                   v-if="attachment.type === 'GIF'"
                   :src="attachment.mediaUrl"
@@ -273,76 +287,91 @@
         <!-- end of typing indicator -->
 
         <!-- input area -->
-        <div class="relative flex flex-col items-center p-4 mt-8">
+
+        <!-- Chat Input Section -->
+        <div class="relative flex-shrink-0 p-4 bg-gray-100 dark:bg-gray-800">
           <div
-            class="md:flex md:flex-row flex flex-col space-y-4 md:space-y-0 items-center w-full"
+            class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2"
           >
+            <!-- Message Input Field -->
             <UInput
               v-model="message"
               @input="OnInput"
               @blur="onBlur"
               placeholder="Type a message..."
-              class="mr-2 min-w-[180px] w-full"
+              class="flex-grow w-full max-w-full"
             />
-            <!-- attachment previews -->
 
+            <div class="flex justify-between space-x-2">
+              <!-- Action Buttons -->
+              <div class="flex space-x-2">
+                <UButton @click="toggleEmojiPicker" variant="ghost" class="p-1">
+                  <UIcon name="i-heroicons-face-smile" size="20" />
+                </UButton>
+                <UButton @click="toggleGifPicker" variant="ghost" class="p-1">
+                  <UIcon name="i-heroicons-gif" size="20" />
+                </UButton>
+                <UButton @click="triggerImageInput" variant="ghost" class="p-1">
+                  <UIcon name="i-heroicons-photo" size="20" />
+                </UButton>
+              </div>
+
+              <!-- Send Button -->
+              <UButton
+                color="primary"
+                @click="sendMessage"
+                class="whitespace-nowrap"
+              >
+                Send
+              </UButton>
+            </div>
+          </div>
+
+          <!-- Attachment Previews -->
+          <div
+            v-if="attachments.length"
+            class="mt-4 overflow-x-auto flex space-x-4 flex-wrap space-y-1 overflow-y-auto h-[50px]"
+          >
             <div
               v-for="(attachment, index) in attachments"
               :key="index"
-              class="relative ml-2"
+              class="relative"
             >
               <img
                 v-if="attachment.type === 'IMAGE'"
-                class="w-12 h-12 object-cover rounded-md"
-                :src="`
-                ${backendBaseUrl}/storage/chatMedia/${attachment.mediaUrl}
-
-                `"
-                alt=""
+                class="w-16 h-16 object-cover rounded-md"
+                :src="`${backendBaseUrl}/storage/chatMedia/${attachment.mediaUrl}`"
+                alt="Attachment image"
                 @load="scrollToBottom"
               />
               <img
                 v-else-if="attachment.type === 'GIF'"
-                class="w-12 h-12 rounded-md"
+                class="w-16 h-16 rounded-md"
                 :src="attachment.mediaUrl"
-                alt=""
+                alt="Attachment gif"
                 @load="scrollToBottom"
               />
               <UButton
-                class="cursor-pointer absolute top-[5px] right-[2px] text-xs p-1 w-4 h-4"
+                class="absolute top-1 right-1 text-xs p-1 w-4 h-4"
                 @click="removeAttachment(index)"
                 color="error"
-                >x</UButton
               >
-            </div>
-
-            <!-- button section -->
-            <div class="flex items-center space-x-1">
-              <UButton @click="toggleEmojiPicker" variant="ghost">
-                <UIcon name="i-heroicons-face-smile" size="20" />
+                x
               </UButton>
-              <UButton @click="toggleGifPicker" variant="ghost">
-                <UIcon name="i-heroicons-gif" size="20" />
-              </UButton>
-
-              <UButton @click="triggerImageInput" variant="ghost">
-                <UIcon name="i-heroicons-photo" size="20" />
-              </UButton>
-              <UButton color="primary" @click="sendMessage">Send</UButton>
             </div>
           </div>
 
-          <!-- Hidden file input for images -->
+          <!-- Hidden Image File Input -->
           <input
             type="file"
             ref="imageInput"
             accept="image/*"
             multiple
-            style="display: none"
+            class="hidden"
             @change="onImageSelected"
           />
-          <!-- end of file input for images -->
-          <!-- emoji picker -->
+
+          <!-- Emoji Picker Popup -->
           <div v-if="showEmojiPicker" class="absolute bottom-full right-0 z-20">
             <EmojiPicker
               :native="true"
@@ -351,15 +380,12 @@
             />
           </div>
 
-          <!-- end of emoji picker -->
-          <!-- gif picker -->
+          <!-- GIF Picker Popup -->
           <div v-if="showGifPicker" class="absolute bottom-full right-0 z-20">
             <GifPicker @select="onSelectGif" />
           </div>
-          <!-- end of input area -->
         </div>
       </div>
     </div>
-    <USeparator orientation="vertical" />
   </div>
 </template>

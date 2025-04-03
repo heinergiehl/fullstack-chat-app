@@ -69,12 +69,15 @@
 
   async function markAsRead(entry: IntersectionObserverEntry) {
     const notId = Number(entry.target.getAttribute("data-notification-id"))
+    console.log("markAsRead in FriendsList", notId)
     if (!notId) return
 
     const cachedNotification = queryClient.getQueryData<Notification[]>([
       "notifications",
     ])
+    console.log("cachedNotification in FriendsList", cachedNotification)
     const notification = cachedNotification?.find((n) => n.id === notId)
+    console.log("notification in FriendsList", notification)
     if (!notification || notification.read) return
     try {
       await callApi(`/notifications/${notification.id}/read`, {

@@ -72,7 +72,10 @@
     >
       <template #leading="{ item }">
         <div>
-          <span v-if="item.unread === 0" class="text-white rounded-full">
+          <span
+            v-if="item.unread === 0"
+            class="text-gray-600 dark:text-gray-400 rounded-full"
+          >
             <UIcon :name="item.icon" size="22" />
           </span>
           <UChip v-else :text="item.unread" size="xl" inset>

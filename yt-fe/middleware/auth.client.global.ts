@@ -1,7 +1,7 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
   if (import.meta.server) return
 
-  const { refetch, data } = useUserProfile()
+  const { refetch, data } = useUserProfile(to.name)
   await refetch()
 
   if (

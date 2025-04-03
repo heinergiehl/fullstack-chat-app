@@ -59,7 +59,6 @@
     observeElement(el)
   }
   const config = useRuntimeConfig()
-  const backendBaseUrl = config.public.BACKEND_BASE_URL
 
   const { setActiveTabIndex } = useSideTabsStore()
 </script>

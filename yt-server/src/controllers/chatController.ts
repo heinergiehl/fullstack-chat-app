@@ -268,5 +268,13 @@ export const deleteChat = async (
       id: chatId,
     },
   })
+
+  chat.participants.forEach((p) => {
+    if (p.userId !== userId) {
+      const io = getIO()
+      emitToUser(io, p.userId, "chatDeleted", { chatId })
+    }
+  })
+
   res.status(200).json({ message: "Chat deleted" })
 }

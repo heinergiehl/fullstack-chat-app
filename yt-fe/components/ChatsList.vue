@@ -2,20 +2,22 @@
   const chatsQuery = useChatsList()
 
   const chats = chatsQuery.chats
-  const router = useRouter()
+
   const deleteMutation = useDeleteChat()
   const deletingChatId = ref<number | null>(null)
   const activeChatId = ref<number | null>(null)
   const toast = useToast()
   function deleteChat(chatId: number) {
-    if (chatId === activeChatId.value) {
-      activeChatId.value = null
-      router.push("/")
-    }
     deletingChatId.value = chatId
     deleteMutation.mutateAsync(chatId, {
       onSuccess: () => {
+        if (chatId === activeChatId.value) {
+          console.log("deleteChat", chatId, activeChatId.value)
+
+          navigateTo("/")
+        }
         deletingChatId.value = null
+        activeChatId.value = null
         toast.add({
           color: "success",
           title: "Success",
@@ -84,12 +86,13 @@
   }
 
   const onClick = (chatId: number) => {
+    console.log("onClick", chatId)
     activeChatId.value = chatId
   }
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-60px)] lg:w-[200px] w-[180px]">
+  <div class="h-[calc(100vh-60px)] flex w-[200px]">
     <USeparator orientation="vertical" />
     <div class="flex flex-col w-full">
       <div v-if="chatsQuery.isLoading.value" class="text-xs text-gray-500">

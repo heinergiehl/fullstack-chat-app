@@ -1,3 +1,5 @@
+import type { RouteRecordNameGeneric } from "vue-router"
+
 export interface TypingIndicator {
   name: string
   userId: number
@@ -9,17 +11,35 @@ export type MinimalUser = {
   profile_image: string
   chatId?: number
 }
-export const useSetupChatRoom = (chatId: number) => {
+export const useSetupChatRoom = (
+  chatId: number,
+  routeName: RouteRecordNameGeneric
+) => {
   const typingIndicators = ref<TypingIndicator[]>([])
   const { $socket: socket } = useNuxtApp()
 
   const joinChat = () => {
     socket.emit("joinChat", { chatId })
   }
-  const route = useRoute()
+
   const leaveChat = () => {
-    console.log("Leaving chat: ", chatId)
-    socket.emit("leaveChat", { chatId })
+    console.log("Leaving chatroom in useSetupChatRoom: ", chatId)
+
+    socket.emit(
+      "leaveChat",
+      { chatId },
+      (ack: { success: boolean; message?: string }) => {
+        if (ack.success) {
+          // Proceed with disconnecting or other logic
+          console.log("Leave chat acknowledged:" + ack.message, routeName)
+          if (routeName === "login" || routeName === "register") {
+            socket.disconnect()
+          }
+        } else {
+          console.error("Failed to leave chat:", ack.message)
+        }
+      }
+    )
   }
   const currentOnlineUsersInChat = ref<MinimalUser[]>([])
 
@@ -86,7 +106,7 @@ export const useSetupChatRoom = (chatId: number) => {
       },
       color: "error",
       description: `${payload.name} left the chat`,
-      duration: 2000,
+      duration: 800,
     })
   }
 

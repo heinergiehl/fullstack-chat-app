@@ -21,11 +21,6 @@ export const useLogoutUser = () => {
       })
     },
     onSuccess: async () => {
-      queryClient.setQueryData(["userProfile"], null)
-      queryClient.setQueryData(["notifications"], null)
-      queryClient.setQueryData(["friends"], null)
-      queryClient.setQueryData(["friendRequests"], null)
-      queryClient.setQueryData(["chats"], null)
       queryClient.clear()
     },
   })

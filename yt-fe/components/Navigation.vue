@@ -30,7 +30,8 @@
 
     const authUser = userProfileQuery.data.value?.user
 
-    const router = useRouter()
+    const socket = useNuxtApp().$socket
+    const params = useRoute().params
 
     const authLinks = authUser
       ? [
@@ -46,12 +47,14 @@
             slot: "logout",
 
             onSelect: async () => {
-              router.push("/login")
-
+              // socket.emit("leaveChat", {
+              //   chatId: params.id,
+              // })
+              socket.emit("logout", () => {
+                socket.disconnect()
+              })
               await logoutMutation.mutateAsync()
-
-              presenceStore.cleanUpPresence()
-              presenceStore.$reset()
+              navigateTo("/login")
             },
           },
         ]
