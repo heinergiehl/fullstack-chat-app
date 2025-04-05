@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import prisma from "../../prisma/db"
 import { getIO } from "../sockets/socketInstance"
-import { emitToUser } from "../sockets/presence"
+import { emitToUser } from "../sockets/setupLobby"
 import { get } from "http"
 
 interface OneToOneChatBody {

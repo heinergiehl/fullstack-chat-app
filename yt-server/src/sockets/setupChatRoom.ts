@@ -1,14 +1,13 @@
 import type { Server, Socket } from "socket.io"
 import {
-  broadcastChatPresence,
-  broadcastPresence,
-  emitToUser,
-  handleDisconnect,
+  broadcastOnlineUsersToChatRoom,
+  broadcastOnlineUsersToLobby,
+  deleteSocketIdAndUserFromMemory,
   updateUserInMemory,
-} from "./presence"
+} from "./setupLobby"
 import prisma from "../../prisma/db"
 
-export function setupChat(io: Server): void {
+export function setupChatRoom(io: Server): void {
   io.on("connection", (socket: Socket) => {
     // Handler for joining a chat room.
     socket.on(
@@ -50,8 +49,8 @@ export function setupChat(io: Server): void {
           })
 
           updateUserInMemory(fullUser.id, userData)
-          broadcastChatPresence(io, chatId)
-          broadcastPresence(io)
+          broadcastOnlineUsersToChatRoom(io, chatId)
+          broadcastOnlineUsersToLobby(io)
 
           if (callback)
             callback({ success: true, message: "Joined chat successfully" })
@@ -99,8 +98,8 @@ export function setupChat(io: Server): void {
           socket.leave(chatId.toString())
           // Remove the user from the in-memory store.
           updateUserInMemory(fullUser.id, { chatId: undefined })
-          broadcastChatPresence(io, chatId)
-          broadcastPresence(io)
+          broadcastOnlineUsersToChatRoom(io, chatId)
+          broadcastOnlineUsersToLobby(io)
 
           return callback({ success: true, message: "Left chat successfully" })
         } catch (error) {
@@ -132,7 +131,7 @@ export function setupChat(io: Server): void {
       ) => {
         const user = socket.data.user
         if (!user) return
-        handleDisconnect(socket, io)
+        deleteSocketIdAndUserFromMemory(socket, io)
         // Check if user is in a chat room:
         if (user.chatId) {
           // Notify other chat users the user is leaving:
@@ -150,7 +149,7 @@ export function setupChat(io: Server): void {
           updateUserInMemory(user.id, { chatId: undefined })
 
           // Broadcast updated chat and global presence:
-          broadcastChatPresence(io, user.chatId)
+          broadcastOnlineUsersToChatRoom(io, user.chatId)
         }
         console.log(`User ${user?.id} logged out in setupChat`)
         callback?.({

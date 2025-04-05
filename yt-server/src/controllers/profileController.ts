@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from "express"
 import prisma from "../../prisma/db"
 import {
-  broadcastPresence,
+  broadcastOnlineUsersToLobby,
   emitToUser,
   updateUserInMemory,
-} from "../sockets/presence"
+} from "../sockets/setupLobby"
 import { getIO } from "../sockets/socketInstance"
 
 export const getProfile = async (
@@ -64,7 +64,7 @@ export const updateProfile = async (
     updateUserInMemory(userId, { ...userWithoutPassword })
 
     const io = getIO()
-    broadcastPresence(io)
+    broadcastOnlineUsersToLobby(io)
     emitToUser(io, userId, "profileUpdated", { user: userWithoutPassword })
 
     res.status(200).json({ user: userWithoutPassword })

@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from "express"
 import type { AuthenticatedRequest } from "./chatController"
 import prisma from "../../prisma/db"
 import { getIO } from "../sockets/socketInstance"
-import { emitToUser } from "../sockets/presence"
+import { emitToUser } from "../sockets/setupLobby"
 
 interface SendMessageBody {
   chatId: number

@@ -11,7 +11,7 @@ const userDataMap = new Map<number, MinimalUser>()
 
 const userToSockets = new Map<number, Set<string>>()
 
-export function setupPresence(io: Server): void {
+export function setupLobby(io: Server): void {
   console.log("Setting up presence")
 
   io.on("connection", async (socket: Socket) => {
@@ -39,7 +39,7 @@ export function setupPresence(io: Server): void {
       const existingSockets = userToSockets.get(userId) ?? new Set<string>()
       existingSockets.add(socket.id)
       userToSockets.set(userId, existingSockets)
-      broadcastPresence(io)
+      broadcastOnlineUsersToLobby(io)
     } else {
       console.log("Socket connected without authenticated user data")
     }
@@ -50,13 +50,13 @@ export function setupPresence(io: Server): void {
         callback?: (ack: { success: boolean; message?: string }) => void
       ) => {
         console.log("Socket leaving room: ", socket.id)
-        handleDisconnect(socket, io)
+        deleteSocketIdAndUserFromMemory(socket, io)
         callback?.({ success: true, message: "Left room successfully" })
       }
     )
     socket.on("disconnect", () => {
       console.log("Socket disconnected: ", socket.id)
-      handleDisconnect(socket, io)
+      deleteSocketIdAndUserFromMemory(socket, io)
     })
 
     socket.on("joinLobby", async (roomId: string) => {
@@ -82,20 +82,23 @@ export function setupPresence(io: Server): void {
       userDataMap.set(user.id, userData)
       //console log all sockets for the user
       console.log("User sockets: ", userToSockets.get(user.id))
-      broadcastPresence(io)
-      broadcastChatPresence(io, parseInt(roomId))
+      broadcastOnlineUsersToLobby(io)
+      broadcastOnlineUsersToChatRoom(io, parseInt(roomId))
     })
   })
 }
 
-export function broadcastPresence(io: Server): void {
+export function broadcastOnlineUsersToLobby(io: Server): void {
   const onlineUsers = Array.from(userToSockets.keys()).map((userId) =>
     userDataMap.get(userId)
   )
   console.log("Broadcasting presence", onlineUsers)
   io.emit("presenceUpdate", onlineUsers)
 }
-export function broadcastChatPresence(io: Server, chatId: number): void {
+export function broadcastOnlineUsersToChatRoom(
+  io: Server,
+  chatId: number
+): void {
   const onlineUsersInChat = Array.from(userDataMap.values()).filter(
     (user) => user.chatId === chatId
   )
@@ -104,13 +107,13 @@ export function broadcastChatPresence(io: Server, chatId: number): void {
     onlineUsersInChat
   )
   if (!chatId) {
-    console.log("No chatId provided in broadcastChatPresence")
+    console.log("No chatId provided in broadcastOnlineUsersToChatRoom")
     return
   }
   io.to(chatId.toString()).emit("chatPresenceUpdate", onlineUsersInChat)
 }
 
-export function handleDisconnect(socket: Socket, io: Server) {
+export function deleteSocketIdAndUserFromMemory(socket: Socket, io: Server) {
   console.log("Socket disconnected: ", socket.id)
   let userId: number | undefined
 
@@ -132,7 +135,7 @@ export function handleDisconnect(socket: Socket, io: Server) {
       }
     }
   }
-  broadcastPresence(io)
+  broadcastOnlineUsersToLobby(io)
 }
 
 export function emitToUser(

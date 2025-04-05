@@ -10,12 +10,12 @@ import { Server } from "socket.io"
 import cookie from "cookie"
 import jwt from "jsonwebtoken"
 import { setIO } from "./src/sockets/socketInstance"
-import { setupPresence } from "./src/sockets/presence"
+import { setupLobby } from "./src/sockets/setupLobby"
 import friendRequestRoutes from "./src/routes/friendRequestRoutes"
 import notificationRoutes from "./src/routes/notificationRoutes"
 import chatRoutes from "./src/routes/chatRoutes"
-import { setupChat } from "./src/sockets/setupchat"
-import { asyncHandler } from "./src/utils/asyncHandler"
+import { setupChatRoom } from "./src/sockets/setupChatRoom"
+
 const app = express()
 app.use(express.json())
 app.use(cookieParser())
@@ -29,13 +29,6 @@ app.use("/api/friend-request", friendRequestRoutes)
 app.use("/api/notifications", notificationRoutes)
 app.use("/api/chats", chatRoutes)
 
-app.get(
-  "/",
-  asyncHandler(async (req, res, next) => {
-    res.json({ message: "Hello World!" })
-    return
-  })
-)
 const httpServer = http.createServer(app)
 
 const ioServer = new Server(httpServer, {
@@ -66,8 +59,8 @@ ioServer.use((socket, next) => {
   })
 })
 
-setupPresence(ioServer)
-setupChat(ioServer)
+setupLobby(ioServer)
+setupChatRoom(ioServer)
 
 httpServer.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}!`)

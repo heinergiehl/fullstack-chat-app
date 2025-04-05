@@ -2,8 +2,8 @@ import type { Request, Response, NextFunction } from "express"
 import prisma from "../../prisma/db"
 import { FriendRequestStatus, NotificationType } from "@prisma/client"
 import { getIO } from "../sockets/socketInstance"
-import { emitToUser } from "../sockets/presence"
-import { emit } from "process"
+import { emitToUser } from "../sockets/setupLobby"
+
 export const sendFriendRequest = async (
   req: Request,
   res: Response,
